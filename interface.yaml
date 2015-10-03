@@ -1,0 +1,4 @@
+name: etcd
+summary: Interface for connecting with an ETCD cluster
+version: 1
+maintainer: "Charles Butler <charles.butler@canonical.com>"
