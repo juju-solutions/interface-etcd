@@ -15,6 +15,8 @@ from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
 
+from charmhelpers.core import hookenv
+
 
 class EtcdClient(RelationBase):
     scope = scopes.GLOBAL
@@ -32,17 +34,19 @@ class EtcdClient(RelationBase):
     @hook('{requires:etcd}-relation-{joined,changed}')
     def changed(self):
         self.set_state('{relation_name}.connected')
+        hookenv.status_set('maintenance', 'ETCD Node connected...')
         if self.connection_string():
             self.set_state('{relation_name}.available')
+            hookenv.status_set('maintenance', 'ETCD data available')
 
     def connection_string(self):
         """
         Get the connection string, if available, or None.
         """
-        data = {'host': self.host(),
+        data = {'host': self.get_remote('hostname'),
                 'port': self.port()
                 }
 
         if all(data.values()):
-            return str.format('host={host} port={port}', **data)
+            return str.format('etcd://{host}:{port}', **data)
         return None
