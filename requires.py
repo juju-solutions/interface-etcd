@@ -48,5 +48,5 @@ class EtcdClient(RelationBase):
                 }
 
         if all(data.values()):
-            return str.format('etcd://{host}:{port}', **data)
+            return str.format('http://{host}:{port}', **data)
         return None
