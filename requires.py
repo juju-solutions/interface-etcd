@@ -37,7 +37,6 @@ class EtcdClient(RelationBase):
         hookenv.status_set('maintenance', 'ETCD Node connected...')
         if self.connection_string():
             self.set_state('{relation_name}.available')
-            hookenv.status_set('maintenance', 'ETCD data available')
 
     def connection_string(self):
         """
