@@ -21,31 +21,19 @@ from charmhelpers.core import hookenv
 class EtcdClient(RelationBase):
     scope = scopes.GLOBAL
 
-    auto_accessors = ['host']
-
-    def port(self):
-        """
-        Get the port.
-
-        If not available, returns the default port of 4001
-        """
-        return self.get_remote('port', 4001)
-
     @hook('{requires:etcd}-relation-{joined,changed}')
     def changed(self):
         self.set_state('{relation_name}.connected')
-        hookenv.status_set('maintenance', 'ETCD Node connected...')
         if self.connection_string():
             self.set_state('{relation_name}.available')
+
+    @hook('{requires:etcd}-relation-{broken, departed}')
+    def broken(self):
+        self.remove_state('{relation_name}.available')
+        self.remove_state('{relation_name}.connected')
 
     def connection_string(self):
         """
         Get the connection string, if available, or None.
         """
-        data = {'host': self.get_remote('hostname'),
-                'port': self.port()
-                }
-
-        if all(data.values()):
-            return str.format('http://{host}:{port}', **data)
-        return None
+        return self.get_remote('connection_string')
