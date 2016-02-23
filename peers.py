@@ -1,8 +1,6 @@
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
-from os import getenv
-from charmhelpers.core.hookenv import unit_get
 from charmhelpers.core.hookenv import is_leader
 from etcd import remove_unit_from_cache
 from etcd import EtcdHelper
@@ -35,8 +33,8 @@ class EtcdClient(RelationBase):
         conv.set_state('{relation_name}.connected')
         etcd = EtcdHelper()
         conv.set_remote(data={'unit_name': etcd.unit_name,
-                              'private-address': etcd.private_address,  # noqa
-                              'public-address': etcd.public_address})
+                              'private_address': etcd.private_address,  # noqa
+                              'public_address': etcd.public_address})
 
     @hook('{peers:etcd}-relation-changed')
     def peers_changed(self):
@@ -45,7 +43,7 @@ class EtcdClient(RelationBase):
         '''
         conv = self.conversation()
         if is_leader():
-            if conv.get_remote('public-address'):
+            if conv.get_remote('public_address'):
                 conv.set_state('{relation_name}.joining')
 
     @hook('{peers:etcd}-relation-{broken,departed}')
@@ -66,5 +64,5 @@ class EtcdClient(RelationBase):
         if not is_leader():
             etcd = EtcdHelper()
             conv.set_remote(data={'unit_name': etcd.unit_name,
-                                  'private-address': etcd.public_address,
-                                  'public-address': etcd.private_address})
+                                  'private_address': etcd.public_address,
+                                  'public_address': etcd.private_address})
