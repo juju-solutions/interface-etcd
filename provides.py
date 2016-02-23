@@ -14,16 +14,23 @@
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
+from charmhelpers.core.hookenv import is_leader
+from etcd import EtcdHelper
 
 
 class EtcdProvider(RelationBase):
     scope = scopes.GLOBAL
 
     @hook('{provides:etcd}-relation-{joined,changed}')
-    def changed(self):
-        pass
+    def joined_or_changed(self):
+        if is_leader():
+            self.set_remote(data={'connection_string': self.connection_string()})
 
     @hook('{provides:etcd}-relation-{broken, departed}')
     def broken(self):
         self.remove_state('{relation_name}.available')
         self.remove_state('{relation_name}.connected')
+
+    def connection_string(self):
+        etcd = EtcdHelper()
+        return etcd.cluster_string(internal=False)
