@@ -1,12 +1,17 @@
-
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
 from os import getenv
 from charmhelpers.core.hookenv import unit_get
 from charmhelpers.core.hookenv import is_leader
+from etcd import remove_unit_from_cache
+from etcd import EtcdHelper
 
-from etcd import databag_to_dict
+# WARNING! This interface layer assumes that ETCD is present on the
+# host that is invoking this relationship handler. As much as I wanted
+# to keep concerns separate, the API messaging living here makes sense, but
+# negates any concerns of encapsulation.
+# TODO: fix and remove the above message
 
 
 class EtcdClient(RelationBase):
@@ -20,45 +25,46 @@ class EtcdClient(RelationBase):
     '''
     scope = scopes.UNIT
 
-    auto_accessors = ['private_address', 'public_address', 'port', 'unit_name',
-                      'management_port', 'state']
+    auto_accessors = ['private_address', 'public_address', 'unit_name']
 
     @hook('{peers:etcd}-relation-joined')
-    def peers_joined(self, management_port=7001, port=4001):
-        self.set_state('{relation_name}.connected')
+    def peers_joined(self):
+        # As i understand this, this only operates on the conversation in
+        # current scope.
         conv = self.conversation()
-        unit_name = getenv('JUJU_UNIT_NAME').replace('/', '')
-        conv.set_remote(data={'unit_name': unit_name,
-                              'management_port': management_port,
-                              'port': port,
-                              'private_address': unit_get('private-address'),  # noqa
-                              'public_address': unit_get('public-address'),
-                              'state': 'new'})
+        conv.set_state('{relation_name}.connected')
+        etcd = EtcdHelper()
+        conv.set_remote(data={'unit_name': etcd.unit_name,
+                              'private-address': etcd.private_address,  # noqa
+                              'public-address': etcd.public_address})
 
     @hook('{peers:etcd}-relation-changed')
     def peers_changed(self):
+        ''' This is where we need to raise on the leader node, PER CONVERSATION,
+            that the peer has joined, and is self-registering.
+        '''
         conv = self.conversation()
         if is_leader():
-            if conv.get_remote('management_port'):
-                conv.set_state('{relation_name}.available')
+            if conv.get_remote('public-address'):
+                conv.set_state('{relation_name}.joining')
 
-    def peer_map(self):
-        etcd_peer_map = {}
-        for participant in self.conversations():
-            name = participant.scope
-            unit = databag_to_dict(participant)
-            etcd_peer_map[name] = unit
-        import pdb; pdb.set_trace()
-        return etcd_peer_map
-
-    @hook('{peers:etcd}-relation{broken,departed}')
-    def removal(self, management_port=7001, port=4001):
-        self.remove_state('{relation_name}.connected')
+    @hook('{peers:etcd}-relation-{broken,departed}')
+    def removal(self):
+        ''' Sad days, a unit is being removed. Expire their cache entry and
+            begin disturbing the cluster to unregister the member from quorem.
+            hopefully before they restart.
+        '''
         conv = self.conversation()
-        unit_name = getenv('JUJU_UNIT_NAME').replace('/', '')
-        conv.set_remote(data={'unit_name': unit_name,
-                              'management_port': management_port,
-                              'port': port,
-                              'private_address': unit_get('private-address'),
-                              'public_address': unit_get('public-address'),
-                              'state': 'dead'})
+        conv.remove_state('{relation_name}.connected')
+        # expire cache
+        departing_peer = conv.get_remote('unit_name')
+        # if we have a unit_name on the wire, assume they are dead to us. RIP
+        if departing_peer:
+            remove_unit_from_cache(departing_peer)
+            conv.set_state('{relation_name}.departed')
+        # We always send our data out over the wire... if we are not the leader
+        if not is_leader():
+            etcd = EtcdHelper()
+            conv.set_remote(data={'unit_name': etcd.unit_name,
+                                  'private-address': etcd.public_address,
+                                  'public-address': etcd.private_address})
