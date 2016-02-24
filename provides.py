@@ -20,10 +20,16 @@ class EtcdProvider(RelationBase):
     scope = scopes.GLOBAL
 
     @hook('{provides:etcd}-relation-{joined,changed}')
-    def changed(self):
-        pass
+    def joined_or_changed(self):
+        self.set_state('{relation_name}.joined')
 
-    @hook('{provides:etcd}-relation-{broken, departed}')
-    def broken(self):
-        self.remove_state('{relation_name}.available')
-        self.remove_state('{relation_name}.connected')
+    @hook('{provides:etcd}-relation-{broken,departed}')
+    def broken_or_departed(self):
+        self.remove_state('{relation_name}.joined')
+
+    def provide_connection_string(self, hosts, port):
+            connection_string = ""
+            for host in hosts:
+                connection_string += ",http://{}:{}".format(host, port)
+            self.set_remote('connection_string', connection_string.lstrip(','))
+            return connection_string.lstrip(',')
