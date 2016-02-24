@@ -17,7 +17,7 @@ from charms.reactive import scopes
 
 
 class EtcdClient(RelationBase):
-    scope = scopes.SERVICE
+    scope = scopes.GLOBAL
 
     @hook('{requires:etcd}-relation-{joined,changed}')
     def changed(self):
