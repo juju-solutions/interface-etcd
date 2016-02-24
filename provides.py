@@ -14,9 +14,6 @@
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
-from charmhelpers.core.hookenv import is_leader
-from charmhelpers.core.hookenv import config
-from charmhelpers.core import unitdata
 
 
 class EtcdProvider(RelationBase):
@@ -24,19 +21,11 @@ class EtcdProvider(RelationBase):
 
     @hook('{provides:etcd}-relation-{joined,changed}')
     def joined_or_changed(self):
-        if is_leader():
-            cstring = self.connection_string()
-            self.set_remote(data={'connection_string': cstring})
+        self.set_state('{relation_name}.joined')
 
-    def connection_string(self):
-        if is_leader():
-            db = unitdata.kv()
-            cluster_data = db.get('etcd.cluster_data')
+    def provide_connection_string(self, hosts, port):
             connection_string = ""
-            for u in cluster_data:
-                connection_string += ",http://{}:{}".format(cluster_data[u]['private_address'], config('port'))  # noqa
+            for host in hosts:
+                connection_string += ",http://{}:{}".format(host, port)
+            self.set_remote('connection_string', connection_string.lstrip(','))
             return connection_string.lstrip(',')
-
-    def cluster_data(self, unit=None):
-        db = unitdata.kv()
-        return db.get('etcd.cluster_data')
