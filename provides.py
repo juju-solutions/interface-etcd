@@ -21,11 +21,11 @@ class EtcdProvider(RelationBase):
 
     @hook('{provides:etcd}-relation-{joined,changed}')
     def joined_or_changed(self):
-        self.set_state('{relation_name}.joined')
+        self.set_state('{relation_name}.connected')
 
     @hook('{provides:etcd}-relation-{broken,departed}')
     def broken_or_departed(self):
-        self.remove_state('{relation_name}.joined')
+        self.remove_state('{relation_name}.connected')
 
     def provide_connection_string(self, hosts, port):
             connection_string = ""
