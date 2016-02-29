@@ -21,7 +21,7 @@ class EtcdClient(RelationBase):
         # As i understand this, this only operates on the conversation in
         # current scope.
         conv = self.conversation()
-        conv.set_state('{relation_name}.prepare_to_launch')
+        conv.set_state('{relation_name}.declare_self')
 
     @hook('{peers:etcd}-relation-changed')
     def peers_changed(self):
@@ -55,4 +55,3 @@ class EtcdClient(RelationBase):
                                 public_address=public_address)
         conversation.remove_state('{relation_name}.joining')
         conversation.remove_state('{relation_name}.prepare_to_launch')
-
