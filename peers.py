@@ -3,7 +3,8 @@ from charms.reactive import hook
 from charms.reactive import scopes
 from charms.reactive import not_unless
 
-class EtcdClient(RelationBase):
+
+class EtcdPeer(RelationBase):
     ''' ETCD Peering works in tandem with the leader node to establish a cluster
         as sanely as possible. This works statically behind a firewall without
         any need for an external service to function as the discovery mechanism
