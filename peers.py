@@ -15,6 +15,7 @@ class EtcdPeer(RelationBase):
     '''
     scope = scopes.UNIT
 
+    # kevin - auto_accessors are cool.
     auto_accessors = ['public_address', 'unit_name', 'port']
 
     @hook('{peers:etcd}-relation-joined')
@@ -29,7 +30,7 @@ class EtcdPeer(RelationBase):
         # As i understand this, this only operates on the conversation in
         # current scope.
         conv = self.conversation()
-        # if we get a port, we'll assume we have all the data....
+        # if we get a unit_name, we'll assume we have all the data....
         if conv.get_remote('unit_name'):
             conv.set_state('{relation_name}.joining')
 
@@ -51,6 +52,16 @@ class EtcdPeer(RelationBase):
 
     @not_unless('{relation_name}.joining')
     def provide_cluster_details(self, scope, public_address, port, unit_name):
+        '''
+        Declare yourself to the cluster as a participating member.
+        of etcd. This is used on the leader to calculate the cluster string and
+        state of the cluster.
+
+        @param: scope - conversation scope yielded from list_peers
+        @param: public_address - units public-address
+        @param: port - public port in connection string
+        @param: unit_name - charm name/unit# with the / stripped. eg: etcd1
+        '''
         conversation = self.conversation(scope=scope)
         conversation.set_remote(port=port, unit_name=unit_name,
                                 public_address=public_address)
