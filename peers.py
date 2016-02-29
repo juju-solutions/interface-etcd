@@ -55,4 +55,4 @@ class EtcdPeer(RelationBase):
         conversation.set_remote(port=port, unit_name=unit_name,
                                 public_address=public_address)
         conversation.remove_state('{relation_name}.joining')
-        conversation.remove_state('{relation_name}.prepare_to_launch')
+        conversation.remove_state('{relation_name}.declare_self')
