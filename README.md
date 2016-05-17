@@ -69,4 +69,4 @@ def send_connection_details(client):
 
 - [Etcd](https://coreos.com/etcd/) home page
 - [Etcd bug trackers](https://github.com/coreos/etcd/issues)
-- [Apache Hadoop Juju Charm](http://jujucharms.com/?text=etcd)
+- [Etcd Juju Charm](http://jujucharms.com/?text=etcd)
