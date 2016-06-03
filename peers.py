@@ -34,6 +34,13 @@ class EtcdPeer(RelationBase):
         if conv.get_remote('unit_name'):
             conv.set_state('{relation_name}.joining')
 
+    @hook('{peers:etcd}-relation-broken')
+    def peers_going_away(self):
+        conv = self.conversation()
+        conv.remove_state('{relation_name}.joining')
+        conv.remove_state('{relation_name}.declare_self')
+        conv.set_state('{relation_name}.departed')
+
     def private_address(self):
         return self.get_remote('private-address')
 
