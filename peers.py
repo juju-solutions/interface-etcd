@@ -7,8 +7,6 @@ class EtcdPeer(RelationBase):
 
     scope = scopes.UNIT
 
-    # kevin - auto_accessors are cool.
-
     @hook('{peers:etcd}-relation-joined')
     def peer_joined(self):
         conv = self.conversation()
@@ -25,7 +23,9 @@ class EtcdPeer(RelationBase):
         conv.remove_state('{relation_name}.joined')
         conv.set_state('{relation_name}.departing')
 
-    def dismiss(self, unit_id):
-        # I dislike the kittens i have to murder to do this
-        conv = self.conversation(unit_id)
-        self.remove_state('{relation_name}.departing')
+    def dismiss(self):
+        ''' Mark each conversation that the context is now done, and we can
+        resume normal operation.
+        '''
+        for conv in self.conversations():
+            conv.remove_state('{relation_name}.departing')
