@@ -32,17 +32,11 @@ class EtcdPeer(RelationBase):
         for conv in self.conversations():
             conv.remove_state('{relation_name}.departing')
 
-    def send_unit_id(self, unit_id):
-        '''Set the cluster unit_id on the relation data. '''
-        for conv in self.conversations():
-            conv.set_remote(data={'cluster_unit_id': unit_id})
-
-    def get_uids(self):
-        '''Return a map of name to cluster unit ids from the relation data.'''
-        uid_map = {}
+    def get_peers(self):
+        '''Return a list of peer names participating in the conversation scope
+        '''
+        peers = []
         # Iterate over all the conversations of this type.
         for conversation in self.conversations():
-            name = conversation.scope
-            uid = conversation.get_remote('cluster_unit_id')
-            uid_map[name] = uid
-        return uid_map
+            peers.append(conversation.scope)
+        return peers
