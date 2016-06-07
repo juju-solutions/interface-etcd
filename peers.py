@@ -34,8 +34,8 @@ class EtcdPeer(RelationBase):
 
     def send_unit_id(self, unit_id):
         '''Set the cluster unit_id on the relation data. '''
-        conv = self.conversation()
-        conv.set_remote(data={'cluster_unit_id': unit_id})
+        for conv in self.conversations():
+            conv.set_remote(data={'cluster_unit_id': unit_id})
 
     def get_uids(self):
         '''Return a map of name to cluster unit ids from the relation data.'''
