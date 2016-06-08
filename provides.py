@@ -27,9 +27,13 @@ class EtcdProvider(RelationBase):
     def broken_or_departed(self):
         self.remove_state('{relation_name}.connected')
 
-    def provide_connection_string(self, hosts, port):
-            connection_string = ""
-            for host in hosts:
-                connection_string += ",http://{}:{}".format(host, port)
-            self.set_remote('connection_string', connection_string.lstrip(','))
-            return connection_string.lstrip(',')
+    def set_client_key_cert(self, key, cert):
+        ''' Set the client credentials on the global conversation for this
+        relation. '''
+        self.set_remote('client_key', key)
+        self.set_remote('client_cert', cert)
+
+    def set_connection_string(self, connection_string):
+        ''' Set the connection string on the global conversation for this
+        relation. '''
+        self.set_remote('connection_string', connection_string)

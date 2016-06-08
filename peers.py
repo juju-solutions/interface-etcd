@@ -33,10 +33,19 @@ class EtcdPeer(RelationBase):
             conv.remove_state('{relation_name}.departing')
 
     def get_peers(self):
-        '''Return a list of peer names participating in the conversation scope
-        '''
+        '''Return a list of names for the peers participating in this
+        conversation scope. '''
         peers = []
         # Iterate over all the conversations of this type.
         for conversation in self.conversations():
             peers.append(conversation.scope)
         return peers
+
+    def get_peer_addresses(self):
+        ''' Return a list of private addresses for the peers participating in
+        this conversation scope. '''
+        addresses = []
+        # Iterate over all the conversations of this type.
+        for conversation in self.conversations():
+            addresses.append(conversation.get_remote('private-address'))
+        return addresses
