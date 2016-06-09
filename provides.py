@@ -27,10 +27,11 @@ class EtcdProvider(RelationBase):
     def broken_or_departed(self):
         self.remove_state('{relation_name}.connected')
 
-    def set_client_key_cert(self, key, cert):
+    def set_client_credentials(self, key, cert, ca):
         ''' Set the client credentials on the global conversation for this
         relation. '''
         self.set_remote('client_key', key)
+        self.set_remote('client_ca', ca)
         self.set_remote('client_cert', cert)
 
     def set_connection_string(self, connection_string):
