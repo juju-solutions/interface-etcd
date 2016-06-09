@@ -1,6 +1,7 @@
 # Overview
 
-This interface layer handles the communication with Etcd via the `etcd` interface.
+This interface layer handles the communication with Etcd via the `etcd`
+interface.
 
 # Usage
 

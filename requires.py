@@ -31,7 +31,13 @@ class EtcdClient(RelationBase):
         self.remove_state('{relation_name}.connected')
 
     def connection_string(self):
-        """
+        '''
         Get the connection string, if available, or None.
-        """
+        '''
         return self.get_remote('connection_string')
+
+    def ssl_certificates(self):
+        ''' Return a dict with the client key and certificate '''
+        return {'client_cert': self.get_remote('client_cert'),
+                'client_key': self.get_remote('client_key'),
+                'client_ca': self.get_remote('client_ca')}
