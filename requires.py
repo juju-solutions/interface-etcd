@@ -56,11 +56,12 @@ class EtcdClient(RelationBase):
         _save_remote_data('client_ca', ca)
 
     def _save_remote_data(self, key, path):
-        ''' Save the remote data to a file indicated by path. '''
-        parent = os.path.dirname(destination)
-        if not os.path.isdir(parent):
-            os.makedirs(parent)
+        ''' Save the remote data to a file indicated by path creating the
+        parent directory if needed.'''
         value = self.get_remote(key)
         if value:
+            parent = os.path.dirname(destination)
+            if not os.path.isdir(parent):
+                os.makedirs(parent)
             with open(destination, 'w') as stream:
                 stream.write(value)
