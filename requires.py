@@ -27,7 +27,7 @@ class EtcdClient(RelationBase):
         set it is also available. '''
         self.set_state('{relation_name}.connected')
 
-        if self.connection_string():
+        if self.get_connection_string():
             cert = self.get_client_credentials()
             if cert['client_cert'] and cert['client_key'] and cert['client_ca']:  # noqa
                 self.set_state('{relation_name}.tls.available')
@@ -39,6 +39,11 @@ class EtcdClient(RelationBase):
         ''' Indicate the relation is no longer available and not connected. '''
         self.remove_state('{relation_name}.available')
         self.remove_state('{relation_name}.connected')
+
+    def connection_string(self):
+        ''' This method is depreciated but ensures backward compatibility
+        @see get_connection_string(self). '''
+        return self.get_connection_string()
 
     def get_connection_string(self):
         ''' Return the connection string, if available, or None. '''
