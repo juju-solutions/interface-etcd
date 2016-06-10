@@ -21,10 +21,12 @@ class EtcdProvider(RelationBase):
 
     @hook('{provides:etcd}-relation-{joined,changed}')
     def joined_or_changed(self):
+        ''' Set the connected state from the provides side of the relation. '''
         self.set_state('{relation_name}.connected')
 
     @hook('{provides:etcd}-relation-{broken,departed}')
     def broken_or_departed(self):
+        '''Remove connected state from the provides side of the relation. '''
         self.remove_state('{relation_name}.connected')
 
     def set_client_credentials(self, key, cert, ca):

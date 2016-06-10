@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
@@ -21,23 +23,52 @@ class EtcdClient(RelationBase):
 
     @hook('{requires:etcd}-relation-{joined,changed}')
     def changed(self):
+        ''' Indicate the relation is connected, and if the relation data is
+        set it is also available. '''
         self.set_state('{relation_name}.connected')
-        if self.connection_string():
-            self.set_state('{relation_name}.available')
+
+        if self.get_connection_string():
+            cert = self.get_client_credentials()
+            if cert['client_cert'] and cert['client_key'] and cert['client_ca']:  # noqa
+                self.set_state('{relation_name}.tls.available')
+            else:
+                self.set_state('{relation_name}.available')
 
     @hook('{requires:etcd}-relation-{broken, departed}')
     def broken(self):
+        ''' Indicate the relation is no longer available and not connected. '''
         self.remove_state('{relation_name}.available')
         self.remove_state('{relation_name}.connected')
 
     def connection_string(self):
-        '''
-        Get the connection string, if available, or None.
-        '''
+        ''' This method is depreciated but ensures backward compatibility
+        @see get_connection_string(self). '''
+        return self.get_connection_string()
+
+    def get_connection_string(self):
+        ''' Return the connection string, if available, or None. '''
         return self.get_remote('connection_string')
 
-    def ssl_certificates(self):
-        ''' Return a dict with the client key and certificate '''
+    def get_client_credentials(self):
+        ''' Return a dict with the client certificate, ca and key to
+        communicate with etcd using tls. '''
         return {'client_cert': self.get_remote('client_cert'),
                 'client_key': self.get_remote('client_key'),
                 'client_ca': self.get_remote('client_ca')}
+
+    def save_client_credentials(self, key, cert, ca):
+        ''' Save all the client certificates for etcd to local files. '''
+        self._save_remote_data('client_cert', cert)
+        self._save_remote_data('client_key', key)
+        self._save_remote_data('client_ca', ca)
+
+    def _save_remote_data(self, key, path):
+        ''' Save the remote data to a file indicated by path creating the
+        parent directory if needed.'''
+        value = self.get_remote(key)
+        if value:
+            parent = os.path.dirname(path)
+            if not os.path.isdir(parent):
+                os.makedirs(parent)
+            with open(path, 'w') as stream:
+                stream.write(value)
