@@ -21,23 +21,46 @@ class EtcdClient(RelationBase):
 
     @hook('{requires:etcd}-relation-{joined,changed}')
     def changed(self):
+        ''' Indicate the relation is connected, and if the relation data is
+        set it is also available. '''
         self.set_state('{relation_name}.connected')
+
         if self.connection_string():
-            self.set_state('{relation_name}.available')
+            cert = ssl_certificates()
+            if cert['client_cert'] and cert['client_key'] and cert['client_ca']:  # noqa
+                self.set_state('{relation_name}.tls.available')
+            else
+              self.set_state('{relation_name}.available')
 
     @hook('{requires:etcd}-relation-{broken, departed}')
     def broken(self):
+        ''' Indicate the relation is no longer available and not connected. '''
         self.remove_state('{relation_name}.available')
         self.remove_state('{relation_name}.connected')
 
-    def connection_string(self):
-        '''
-        Get the connection string, if available, or None.
-        '''
+    def get_connection_string(self):
+        ''' Return the connection string, if available, or None. '''
         return self.get_remote('connection_string')
 
-    def ssl_certificates(self):
-        ''' Return a dict with the client key and certificate '''
+    def get_client_credentials(self):
+        ''' Return a dict with the client certificate, ca and key to
+        communicate with etcd using tls. '''
         return {'client_cert': self.get_remote('client_cert'),
                 'client_key': self.get_remote('client_key'),
                 'client_ca': self.get_remote('client_ca')}
+
+    def save_client_credentials(self, key, cert, ca):
+        ''' Save all the client certificates for etcd to local files. '''
+        _save_remote_data('client_cert', cert)
+        _save_remote_data('client_key', key)
+        _save_remote_data('client_ca', ca)
+
+    def _save_remote_data(self, key, path):
+        ''' Save the remote data to a file indicated by path. '''
+        parent = os.path.dirname(destination)
+        if not os.path.isdir(parent):
+            os.makedirs(parent)
+        value = self.get_remote(key)
+        if value:
+            with open(destination, 'w') as stream:
+                stream.write(value)
