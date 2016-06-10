@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
@@ -26,11 +28,11 @@ class EtcdClient(RelationBase):
         self.set_state('{relation_name}.connected')
 
         if self.connection_string():
-            cert = ssl_certificates()
+            cert = self.get_client_credentials()
             if cert['client_cert'] and cert['client_key'] and cert['client_ca']:  # noqa
                 self.set_state('{relation_name}.tls.available')
-            else
-              self.set_state('{relation_name}.available')
+            else:
+                self.set_state('{relation_name}.available')
 
     @hook('{requires:etcd}-relation-{broken, departed}')
     def broken(self):
@@ -51,17 +53,17 @@ class EtcdClient(RelationBase):
 
     def save_client_credentials(self, key, cert, ca):
         ''' Save all the client certificates for etcd to local files. '''
-        _save_remote_data('client_cert', cert)
-        _save_remote_data('client_key', key)
-        _save_remote_data('client_ca', ca)
+        self._save_remote_data('client_cert', cert)
+        self._save_remote_data('client_key', key)
+        self._save_remote_data('client_ca', ca)
 
     def _save_remote_data(self, key, path):
         ''' Save the remote data to a file indicated by path creating the
         parent directory if needed.'''
         value = self.get_remote(key)
         if value:
-            parent = os.path.dirname(destination)
+            parent = os.path.dirname(path)
             if not os.path.isdir(parent):
                 os.makedirs(parent)
-            with open(destination, 'w') as stream:
+            with open(path, 'w') as stream:
                 stream.write(value)
