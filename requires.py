@@ -28,17 +28,19 @@ class EtcdClient(RelationBase):
         self.set_state('{relation_name}.connected')
 
         if self.get_connection_string():
+            self.set_state('{relation_name}.available')
+            # Get the ca, key, cert from the relation data.
             cert = self.get_client_credentials()
+            # The tls state depends on the existance of the ca, key and cert.
             if cert['client_cert'] and cert['client_key'] and cert['client_ca']:  # noqa
                 self.set_state('{relation_name}.tls.available')
-            else:
-                self.set_state('{relation_name}.available')
 
     @hook('{requires:etcd}-relation-{broken, departed}')
     def broken(self):
         ''' Indicate the relation is no longer available and not connected. '''
         self.remove_state('{relation_name}.available')
         self.remove_state('{relation_name}.connected')
+        self.remove_state('{relation_name}.tls.available')
 
     def connection_string(self):
         ''' This method is depreciated but ensures backward compatibility
