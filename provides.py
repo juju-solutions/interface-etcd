@@ -36,7 +36,10 @@ class EtcdProvider(RelationBase):
         self.set_remote('client_ca', ca)
         self.set_remote('client_cert', cert)
 
-    def set_connection_string(self, connection_string):
+    def set_connection_string(self, connection_string, version=''):
         ''' Set the connection string on the global conversation for this
         relation. '''
+        # Note: Version added as a late-dependency for 2 => 3 migration
+        # If no version is specified, consumers should presume etcd 2.x
         self.set_remote('connection_string', connection_string)
+        self.set_remote('version', version)

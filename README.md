@@ -16,6 +16,7 @@ This interface layer will set the following states, as appropriate:
     information, and is ready to serve as a KV store.
     The provided information can be accessed via the following methods:
       * `etcd.get_connection_string()`
+      * `etcd.get_version()`
   * `{relation_name}.tls.available` Etcd has provided the connection string
     information, and the tls client credentials to communicate with it.
     The client credentials can be accessed via:
@@ -50,7 +51,7 @@ This interface layer will set the following states, as appropriate:
     been related. The charm should call the following methods to provide the
     appropriate information to the clients:
 
-    * `{relation_name}.set_connection_string(string)`
+    * `{relation_name}.set_connection_string(string, version)`
     * `{relation_name}.set_client_credentials(key, cert, ca)`
 
 Example:

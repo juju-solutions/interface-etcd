@@ -51,6 +51,10 @@ class EtcdClient(RelationBase):
         ''' Return the connection string, if available, or None. '''
         return self.get_remote('connection_string')
 
+    def get_version(self):
+        ''' Return the version of the etd protocol being used, or None. '''
+        return self.get_remote('version')
+
     def get_client_credentials(self):
         ''' Return a dict with the client certificate, ca and key to
         communicate with etcd using tls. '''
