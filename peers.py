@@ -54,11 +54,17 @@ class EtcdPeer(RelationBase):
             peers.append(conversation.scope)
         return peers
 
-    def get_peer_addresses(self):
-        '''Return a list of private addresses for the peers participating in
-        this conversation scope. '''
+    def set_db_ingress_address(self, address):
+        '''Set the ingress address belonging to the db relation.'''
+        for conversation in self.conversations():
+            conversation.set_remote('db-ingress-address', address)
+
+    def get_db_ingress_addresses(self):
+        '''Return a list of db ingress addresses'''
         addresses = []
         # Iterate over all the conversations of this type.
         for conversation in self.conversations():
-            addresses.append(conversation.get_remote('private-address'))
+            address = conversation.get_remote('db-ingress-address')
+            if address:
+                addresses.append(address)
         return addresses
