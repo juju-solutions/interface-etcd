@@ -27,7 +27,9 @@ class EtcdProvider(RelationBase):
     @hook('{provides:etcd}-relation-{broken,departed}')
     def broken_or_departed(self):
         '''Remove connected state from the provides side of the relation. '''
-        self.remove_state('{relation_name}.connected')
+        conv = self.conversation()
+        if len(conv.units) == 1:
+            conv.remove_state('{relation_name}.connected')
 
     def set_client_credentials(self, key, cert, ca):
         ''' Set the client credentials on the global conversation for this
